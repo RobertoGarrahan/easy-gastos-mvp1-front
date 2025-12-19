@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>EasyGastos - Gestão Financeira</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- header -->
+    <header>
+      <h1>💰 EasyGastos</h1>
+      <nav>
+        <button onclick="navegar('home')">Home</button>
+        <button onclick="navegar('cartoes')">Cartões</button>
+        <button onclick="navegar('listar')">Gastos</button>
+      </nav>
+    </header>
+
+    <!-- home -->
+    <section id="home" class="secao">
+      <h2 class="home-title">📊 Visão Geral dos Seus Gastos</h2>
+      <p class="home-subtitle">
+        Acompanhe seus gastos e gerencie suas finanças de forma simples.
+      </p>
+
+      <div class="dash-container">
+        <div class="dash-card" id="dashQtd">
+          <h3>🧾 Total de Gastos</h3>
+          <p>0 registros</p>
+        </div>
+
+        <div class="dash-card" id="dashMeioPagamento">
+          <h3>💳 Meio de Pagamento Mais Usado</h3>
+          <p>—</p>
+        </div>
+
+        <div class="dash-card" id="dashCartao">
+          <h3>🏦 Cartão Mais Usado</h3>
+          <p>—</p>
+        </div>
+
+        <div class="dash-card" id="dashCategoria">
+          <h3>📌 Categoria Mais Usada</h3>
+          <p>—</p>
+        </div>
+
+        <div class="dash-card" id="dashMesAtual">
+          <h3>📅 Gastos do Mês Atual</h3>
+          <p>R$ 0,00</p>
+        </div>
+
+        <div class="dash-card" id="dashMesAnterior">
+          <h3>📆 Gastos do Mês Anterior</h3>
+          <p>R$ 0,00</p>
+        </div>
+      </div>
+      <!-- grafico de categorias -->
+      <div class="grafico-container">
+        <h4> Distribuição de Gastos por Categoria</h4>
+        <canvas id="graficoCategorias"></canvas>
+      </div>
+    </section>
+
+    <!-- cartões -->
+    <section id="cartoes" class="secao" style="display: none">
+      <h2>💳 Cartões</h2>
+
+      <div class="cartao-form-card">
+        <h3>➕ Cadastrar novo cartão</h3>
+
+        <form id="formCartao">
+          <div class="form-grid">
+            <div>
+              <label>Nome do Cartão</label>
+              <input
+                type="text"
+                id="nomeCartao"
+                placeholder="Ex: Nubank 0681"
+                required
+              />
+            </div>
+
+            <div>
+              <label>Limite (R$)</label>
+              <input
+                type="number"
+                step="0.01"
+                id="limiteCartao"
+                placeholder="3000.00"
+              />
+            </div>
+
+            <div>
+              <label>Dia de Fechamento</label>
+              <input type="number" id="fechamentoCartao" min="1" max="31" />
+            </div>
+
+            <div>
+              <label>Dia de Vencimento</label>
+              <input type="number" id="vencimentoCartao" min="1" max="31" />
+            </div>
+          </div>
+
+          <button type="submit" class="btn-full">💾 Cadastrar Cartão</button>
+        </form>
+
+        <p id="msgCartao" class="msg-cartao"></p>
+      </div>
+
+      <h3 class="titulo-lista">📋 Cartões Cadastrados</h3>
+      <div id="listaCartoes" class="lista-cartoes"></div>
+    </section>
+
+    <!-- gastos -->
+    <section id="listar" class="secao" style="display: none">
+      <h2>Todos os Gastos</h2>
+
+      <div class="filtro-container">
+        <input
+          type="text"
+          id="filtroGastos"
+          placeholder="Filtrar gastos..."
+          oninput="filtrarTabela()"
+        />
+
+        <button class="btn-add" onclick="abrirModalGasto()">
+          + Adicionar Gasto
+        </button>
+      </div>
+
+      <table class="tabela-gastos">
+        <thead>
+          <tr>
+            <th>Valor</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Pagamento</th>
+            <th>Cartão</th>
+            <th>Data</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="listaGastos"></tbody>
+      </table>
+    </section>
+
+    <!-- modal de adicionar gastos -->
+    <div id="modalGasto" class="modal">
+      <div class="modal-content">
+        <span class="modal-close" onclick="fecharModalGasto()">X</span>
+        <h2>Adicionar Gasto</h2>
+
+        <form id="formGastoModal">
+          <label>Valor (R$):</label>
+          <input type="number" step="0.01" id="valorModal" required />
+
+          <label>Descrição:</label>
+          <input type="text" id="descricaoModal" required />
+
+          <label>Categoria:</label>
+          <select id="categoriaModal">
+            <option value="alimentacao">Alimentação</option>
+            <option value="transporte">Transporte</option>
+            <option value="contas">Contas</option>
+            <option value="lazer">Lazer</option>
+            <option value="outros">Outros</option>
+          </select>
+
+          <label>Tipo de Pagamento:</label>
+          <select
+            id="tipoPagamentoModal"
+            onchange="atualizarTipoPagamentoModal()"
+          >
+            <option value="pix">PIX</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="cartao">Cartão</option>
+          </select>
+
+          <div id="cartaoCamposModal" style="display: none">
+            <label>Cartão Usado:</label>
+            <select id="cartaoIDModal"></select>
+
+            <label>Tipo:</label>
+            <select id="tipoCartaoModal" onchange="modParcelasModal()">
+              <option value="debito">Débito</option>
+              <option value="credito">Crédito</option>
+            </select>
+
+            <div id="parcelasCamposModal" style="display: none">
+              <label>Parcelado?</label>
+              <select id="parceladoModal" onchange="mostrarParcelasModal()">
+                <option value="0">Não</option>
+                <option value="1">Sim</option>
+              </select>
+
+              <div id="qtdParcelasModal" style="display: none">
+                <label>Nº Parcelas:</label>
+                <input type="number" id="numParcelasModal" min="1" />
+
+                <label>Parcela Atual:</label>
+                <input type="number" id="parcelaAtualModal" min="1" />
+              </div>
+            </div>
+          </div>
+
+          <label>Data:</label>
+          <input type="date" id="dataModal" required />
+
+          <button type="submit">Salvar</button>
+        </form>
+
+        <p id="msgAddModal"></p>
+      </div>
+    </div>
+
+    <!-- grafico -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
